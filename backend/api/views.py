@@ -158,7 +158,6 @@ class RecipeViewSet(ModelViewSet):
     # def download_shopping_cart(self, request):
     #     """Подготавливает и возвращает файл со списком покупок"""
 
-
     # @action(methods=['get'], detail=True, url_name='get_link')
     # def get_link(self, request, pk=None):
     #     """Получение короткой ссылки на рецепт"""

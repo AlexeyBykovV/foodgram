@@ -91,8 +91,8 @@ class UserViewSet(views.UserViewSet):
     )
     def get_subscriptons(self, request):
         """Метод для получения подписки."""
-        queryset = self.get_queryset().filter(user=request.user)
-        page = self.paginate_queryset(self.get_queryset())
+        queryset = Subscriptions.objects.filter(user=request.user)
+        page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = UserSubscriptionsSerializer(
                 page, many=True, context={'request': request}

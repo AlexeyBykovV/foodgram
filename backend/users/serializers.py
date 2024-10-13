@@ -135,6 +135,9 @@ class UserSubscriptionsSerializer(ModelSerializer):
     def to_representation(self, instance):
         """Преобразует объект instance в представление UserRecipeSerializer."""
         try:
+            if not isinstance(instance, Subscriptions):
+                raise TypeError('Ожидается объект Subscriptions.')
+
             if not hasattr(instance, 'author'):
                 raise AttributeError('У данного экземпляра нет author.')
 
