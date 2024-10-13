@@ -1,5 +1,3 @@
-TEXT_LIMIT = 15
-
 # models recipes
 TITLE_MAX_LENGTH = 256
 NAME_MAX_LENGTH = 256
@@ -11,3 +9,6 @@ COOKING_MIN_TIME = 1
 # models users
 EMAIL_MAX_LENGTH = 254
 USER_MAX_LENGTH = 150
+
+# settings
+PAGE_SIZE_MAX = 6
