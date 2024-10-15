@@ -1,11 +1,17 @@
+import pdfkit
+
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from fpdf import FPDF
+from django.template.loader import get_template
+from django.template import Context
 
 from core.paginations import RecipePagination
 from recipes.models import (
@@ -154,9 +160,52 @@ class RecipeViewSet(ModelViewSet):
         """Удалаяет рецепт из списка покупок."""
         return self.delete_recipe(request, pk, ShoppingCart)
 
-    # @action(methods=['get'], detail=False, url_name='download',)
-    # def download_shopping_cart(self, request):
-    #     """Подготавливает и возвращает файл со списком покупок"""
+    @action(methods=['get'], detail=False, url_name='download',)
+    def download_shopping_cart(self, request):
+        """Подготавливает и возвращает файл со списком покупок"""
+        user = self.request.user
+        shopping_cart = ShoppingCart.objects.filter(author=user)
+        recipes = Recipe.objects.filter(shoppingcart__in=shopping_cart)
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=15)
+        pdf.cell(200, 10, txt="Список покупок", ln=True, align='C')
+
+        ingredients = {}
+        for recipe in recipes:
+            for ingredient in recipe.recipe_ingredients.all():
+                name = ingredient.ingredient.name
+                amount = ingredient.amount
+                measurement_unit = ingredient.ingredient.measurement_unit
+                if name in ingredients:
+                    ingredients[name]['amount'] += amount
+                else:
+                    ingredients[name] = {
+                        'amount': amount, 'measurement_unit': measurement_unit
+                    }
+
+        template = get_template('shopping_cart.html')
+        context = {'ingredients': ingredients}
+        html = template.render(context)
+
+        options = {
+            'page-size': 'A4',
+            'margin-top': '0.75in',
+            'margin-right': '0.75in',
+            'margin-bottom': '0.75in',
+            'margin-left': '0.75in',
+            'encoding': "UTF-8",
+            'no-outline': None
+        }
+
+        pdf = pdfkit.from_string(html, False, options=options)
+
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_cart.pdf"'
+        )
+        return response
 
     # @action(methods=['get'], detail=True, url_name='get_link')
     # def get_link(self, request, pk=None):

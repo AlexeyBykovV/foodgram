@@ -8,6 +8,8 @@ RUN pip install --upgrade pip
 
 RUN pip install -r requirements.txt --no-cache-dir
 
+RUN apt-get update && apt-get install -y wkhtmltopdf
+
 COPY . .
 
 # CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram_backend.wsgi"]
