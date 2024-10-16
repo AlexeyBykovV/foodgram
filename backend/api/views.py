@@ -1,8 +1,10 @@
 import pdfkit
+import uuid
 
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.template.loader import get_template
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -10,8 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from fpdf import FPDF
-from django.template.loader import get_template
-from django.template import Context
+# from shortuuid import uuid
 
 from core.paginations import RecipePagination
 from recipes.models import (
@@ -93,7 +94,6 @@ class RecipeViewSet(ModelViewSet):
         'retrieve': RecipeSerializer,
         'favorite': FavoritesSerializer,
         'shopping_cart': ShoppingCartSerializer,
-        # 'get_link': ShortUrlSerializer,
     }
 
     def get_serializer_class(self):
@@ -169,8 +169,8 @@ class RecipeViewSet(ModelViewSet):
 
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=15)
-        pdf.cell(200, 10, txt="Список покупок", ln=True, align='C')
+        pdf.set_font('Arial', size=15)
+        pdf.cell(200, 10, txt='Список покупок', ln=True, align='C')
 
         ingredients = {}
         for recipe in recipes:
@@ -195,7 +195,7 @@ class RecipeViewSet(ModelViewSet):
             'margin-right': '0.75in',
             'margin-bottom': '0.75in',
             'margin-left': '0.75in',
-            'encoding': "UTF-8",
+            'encoding': 'UTF-8',
             'no-outline': None
         }
 
@@ -207,9 +207,32 @@ class RecipeViewSet(ModelViewSet):
         )
         return response
 
-    # @action(methods=['get'], detail=True, url_name='get_link')
-    # def get_link(self, request, pk=None):
-    #     """Получение короткой ссылки на рецепт"""
+    @action(
+        methods=['get'], detail=True, url_path='get-link', url_name='get_link'
+    )
+    def get_link(self, request, pk=None):
+        """Получение короткой ссылки на рецепт"""
+        recipe = self.get_object()
+        if not recipe.short_link:
+            while True:
+                short_link = str(uuid.uuid4())[:8]
+                if not Recipe.objects.filter(short_link=short_link).exists():
+                    recipe.short_link = short_link
+                    recipe.save()
+                    break
+        return Response(
+            {'short_link': request.build_absolute_uri(
+                    f'/recipes/short/{recipe.short_link}'
+                )},
+            status=status.HTTP_200_OK
+        )
+
+    @action(methods=['get'], detail=False, url_path='short/(?P<short_link>[^/.]+)', url_name='recipe_by_short_link')
+    def retrieve_by_short_link(self, request, short_link=None):
+        """Получение рецепта по короткой ссылке"""
+        recipe = get_object_or_404(Recipe, short_link=short_link)
+        serializer = self.get_serializer(recipe)
+        return Response(serializer.data)
 
     def add_recipe(self, request, pk):
         """Добавляет рецепт к автору.

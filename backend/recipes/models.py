@@ -9,6 +9,7 @@ from core.constants import (
     UNIT_MAX_LENGTH,
     COOKING_MAX_TIME,
     COOKING_MIN_TIME,
+    SHORT_LINK_SIZE,
 )
 from core.models import AuthorModel
 
@@ -114,6 +115,9 @@ class Recipe(AuthorModel):
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата добавления',
+    )
+    short_link = models.CharField(
+        max_length=SHORT_LINK_SIZE, unique=True, null=True, blank=True
     )
 
     class Meta:
