@@ -1,25 +1,17 @@
-from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import (
-    ModelSerializer,
-    SerializerMethodField,
-    PrimaryKeyRelatedField,
-)
+from rest_framework.serializers import (ModelSerializer,
+                                        PrimaryKeyRelatedField,
+                                        SerializerMethodField)
 
+from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
 from users.serializers import UserSerializer
-from recipes.models import (
-    FavoritesRecipe,
-    Ingredient,
-    Recipe,
-    RecipeIngredients,
-    ShoppingCart,
-    Tag,
-)
 
 
 class TagSerializer(ModelSerializer):
-    """Сериализатор преобразует данные модели Tag в формат JSON."""
+    """Сериализатор для преобразования данных модели Tag в формат JSON."""
 
     class Meta:
         model = Tag
@@ -27,7 +19,7 @@ class TagSerializer(ModelSerializer):
 
 
 class IngredientSerializer(ModelSerializer):
-    """Сериализатор преобразует данные модели Ingredient в формат JSON."""
+    """Сериализатор для преобразования данных модели Ingredient в формат JSON."""
 
     class Meta:
         model = Ingredient
@@ -35,7 +27,7 @@ class IngredientSerializer(ModelSerializer):
 
 
 class RecipeSerializer(ModelSerializer):
-    """Сериализатор преобразует данные модели Recipe в формат JSON."""
+    """Сериализатор для преобразования данных модели Recipe в формат JSON."""
 
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
@@ -60,8 +52,14 @@ class RecipeSerializer(ModelSerializer):
         )
 
     def get_ingredients(self, obj):
-        """Получение ингредиентов для рецепта."""
+        """Получение списка ингредиентов для рецепта.
+
+        :param obj: Экземпляр модели Recipe.
+        :return: Список ингредиентов с их идентификаторами, названиями,
+        единицами измерения и количеством.
+        """
         ingredients = obj.recipe_ingredients.all()
+
         return [
             {
                 'id': ingredient.ingredient.id,
@@ -73,14 +71,22 @@ class RecipeSerializer(ModelSerializer):
         ]
 
     def get_is_favorited(self, obj):
-        """Проверка наличия рецепта в избранном."""
+        """Проверка наличия рецепта в избранном.
+
+        :param obj: Экземпляр модели Recipe.
+        :return: True, если рецепт в избранном, иначе False.
+        """
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
         return obj.favorites.filter(author=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        """Проверка наличия рецепта в списке покупок."""
+        """Проверка наличия рецепта в списке покупок.
+
+        :param obj: Экземпляр модели Recipe.
+        :return: True, если рецепт в списке покупок, иначе False.
+        """
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
@@ -88,7 +94,7 @@ class RecipeSerializer(ModelSerializer):
 
 
 class RecipeIngredientSerializer(ModelSerializer):
-    """Сериалайзер представления ингредиента для RecipeCreateSerializer."""
+    """Сериализатор для представления ингредиента в RecipeCreateSerializer."""
 
     id = PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
@@ -100,7 +106,7 @@ class RecipeIngredientSerializer(ModelSerializer):
 
 
 class RecipeCreateSerializer(ModelSerializer):
-    """Сериалайзер создания Рецептов"""
+    """Сериализатор для создания рецептов."""
 
     tags = PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True
@@ -122,7 +128,12 @@ class RecipeCreateSerializer(ModelSerializer):
         )
 
     def validate_image(self, image_data):
-        """Валидация изображения рецепта перед созданием рецепта."""
+        """Валидация изображения рецепта перед созданием.
+
+        :param image_data: Данные изображения.
+        :raises ValidationError: Если изображение отсутствует.
+        :return: Данные изображения, если они валидны.
+        """
         if image_data is None:
             raise ValidationError(
                 'У рецепта обязательно должно быть изображение.'
@@ -130,45 +141,46 @@ class RecipeCreateSerializer(ModelSerializer):
         return image_data
 
     def validate(self, data):
-        """Валидация ингредиентов и тэга перед созданием рецепта."""
+        """Валидация ингредиентов и тегов перед созданием рецепта.
+
+        :param data: Данные, переданные для создания рецепта.
+        :raises ValidationError: Если не выбраны теги или ингредиенты,
+        или если количество ингредиента неверно.
+        :return: Валидированные данные.
+        """
         tags = data.get('tags', [])
         if not tags:
             raise ValidationError('В рецепте не выбран тэг.')
 
         ingredients = data.get('recipe_ingredients', [])
         if not ingredients:
-            raise ValidationError('В рецепте не выбраны ингредиенты')
+            raise ValidationError('В рецепте не выбраны ингредиенты.')
 
-        # ingredients_result = []
-        # for ingredient in ingredients:
+        ingredient_ids = []
+        for ingredient in ingredients:
+            ingredient_id = ingredient['ingredient'].id
+            if ingredient_id in ingredient_ids:
+                raise ValidationError(
+                    f'{ingredient["ingredient"].name} уже добавлен в рецепт.'
+                )
+            ingredient_ids.append(ingredient_id)
 
-        #     id_ingredients = {
-        #         ingredient['ingredient'] for ingredient in ingredients
-        #     }
+            amount = ingredient.get('amount')
+            if amount is None or amount <= 0:
+                raise ValidationError(
+                    f'Неправильное количество {ingredient["ingredient"].name}.'
+                    ' Количество должно быть больше нуля.'
+                )
 
-        #     if any(
-        #         item['ingredient'] == id_ingredients for item in ingredients_result
-        #     ):
-        id_ingredients = {
-            ingredient['ingredient'] for ingredient in ingredients
-        }
-        if len(ingredients) != len(id_ingredients):
-            raise ValidationError('В рецепт уже добавлен ингредиент.')
-
-            # amount = ingredient['amount']
-            # if not (isinstance(amount, int) or amount.isdigit()):
-            #     raise ValidationError('Неправильное количество ингридиента.')
-
-            # ingredients_result.append(
-            #     {'ingredients': ingredient, 'amount': amount}
-            # )
-
-        # data['ingredients'] = ingredients_result
         return data
 
     @transaction.atomic
     def create(self, validated_data):
-        """Создание рецепта."""
+        """Создание рецепта.
+
+        :param validated_data: Валидированные данные для создания рецепта.
+        :return: Созданный экземпляр рецепта.
+        """
         ingredients_data = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(
@@ -180,7 +192,12 @@ class RecipeCreateSerializer(ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        """Обновление рецепта."""
+        """Обновление существующего рецепта.
+
+        :param instance: Экземпляр рецепта для обновления.
+        :param validated_data: Валидированные данные для обновления рецепта.
+        :return: Обновленный экземпляр рецепта.
+        """
         ingredients = validated_data.pop('recipe_ingredients')
         instance.ingredients.clear()
         instance.tags.clear()
@@ -192,7 +209,11 @@ class RecipeCreateSerializer(ModelSerializer):
 
     @staticmethod
     def add_ingredients_to_recipe(recipe, ingredients):
-        """Добавление или обновление Ингредиентов в рецепте."""
+        """Добавление или обновление ингредиентов в рецепте.
+
+        :param recipe: Экземпляр рецепта, в который добавляются ингредиенты.
+        :param ingredients: Список ингредиентов для добавления.
+        """
         RecipeIngredients.objects.bulk_create(
             RecipeIngredients(
                 recipe=recipe,
@@ -203,12 +224,16 @@ class RecipeCreateSerializer(ModelSerializer):
         )
 
     def to_representation(self, instance):
-        """Возвращает представление данных рецепта."""
+        """Возвращает представление данных рецепта.
+
+        :param instance: Экземпляр модели Recipe.
+        :return: Данные рецепта в формате JSON.
+        """
         return RecipeSerializer(instance, context=self.context).data
 
 
 class FavoritesShoppingCartSerializer(ModelSerializer):
-    """Родительсский сериалайзер для добавления в Избранное/Спискок покупок."""
+    """Родительский сериализатор для добавления в Избранное/Список покупок."""
 
     class Meta:
         model = None
@@ -216,13 +241,22 @@ class FavoritesShoppingCartSerializer(ModelSerializer):
         read_only_fields = ('author',)
 
     def get_recipe_added_to(self):
-        """Возвращает название коллекции, куда добавляется рецепт."""
+        """Возвращает название коллекции, куда добавляется рецепт.
+
+        :raises NotImplementedError: Если модель не указана в подклассе.
+        :return: Название коллекции.
+        """
         if self.Meta.model is None:
             raise NotImplementedError('Не указана модель в подклассе.')
         return self.Meta.model._meta.verbose_name
 
     def validate(self, data):
-        """Валидация данных перед добавление в избранное/список покупок."""
+        """Валидация данных перед добавлением в избранное/список покупок.
+
+        :param data: Данные для валидации.
+        :raises ValidationError: Если рецепт уже добавлен в коллекцию.
+        :return: Валидированные данные.
+        """
         recipe = data['recipe']
         user = self.context['request'].user
         if self.Meta.model.objects.filter(author=user, recipe=recipe).exists():
@@ -232,7 +266,12 @@ class FavoritesShoppingCartSerializer(ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        """Возвращает представление данных рецепта."""
+        """Возвращает представление данных рецепта.
+
+        :param instance: Экземпляр модели, связанный
+        с избранным или списком покупок.
+        :return: Данные рецепта в формате JSON.
+        """
         recipe = instance.recipe
         return {
             'id': recipe.id,
@@ -243,14 +282,14 @@ class FavoritesShoppingCartSerializer(ModelSerializer):
 
 
 class FavoritesSerializer(FavoritesShoppingCartSerializer):
-    """Сериалайзер для добавления в избранное."""
+    """Сериализатор для добавления рецептов в избранное."""
 
     class Meta(FavoritesShoppingCartSerializer.Meta):
         model = FavoritesRecipe
 
 
 class ShoppingCartSerializer(FavoritesShoppingCartSerializer):
-    """Сериалайзер для добавления в список покупок."""
+    """Сериализатор для добавления рецептов в список покупок."""
 
     class Meta(FavoritesShoppingCartSerializer.Meta):
         model = ShoppingCart

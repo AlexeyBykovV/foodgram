@@ -23,7 +23,7 @@ class Command(BaseCommand):
         """Создает или получает объекты ингредиентов из CSV файла.
 
         Аргументы:
-        - file: Файловый объект CSV файла, содержащего ингредиенты.
+            file: Файловый объект CSV файла, содержащего ингредиенты.
         """
         for row in csv.reader(file):
             name, measurement_unit = row

@@ -1,45 +1,38 @@
-import pdfkit
 import uuid
 
+import pdfkit
 from django.db.models import Exists, OuterRef, Prefetch
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from django.template.loader import get_template
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import get_template
+from django_filters.rest_framework import DjangoFilterBackend
+from fpdf import FPDF
 from rest_framework import status
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from fpdf import FPDF
-# from shortuuid import uuid
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from core.paginations import RecipePagination
-from recipes.models import (
-    Ingredient, Tag, Recipe, RecipeIngredients, FavoritesRecipe, ShoppingCart
-)
+from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
 from users.models import Subscriptions
+
 from .filters import IngredientFilter, RecipesFilter
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (
-    TagSerializer,
-    IngredientSerializer,
-    RecipeSerializer,
-    RecipeCreateSerializer,
-    FavoritesSerializer,
-    ShoppingCartSerializer,
-)
+from .serializers import (FavoritesSerializer, IngredientSerializer,
+                          RecipeCreateSerializer, RecipeSerializer,
+                          ShoppingCartSerializer, TagSerializer)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
-    """Класс используется для обработки запросов к модели Tag.
+    """Класс для обработки запросов к модели Tag.
 
-    Атрибуты класса:
-    - queryset: получение всех объектов модели Tag.
-    - serializer_class: TagSerializer - сериализатор, который будет
-    использоваться для преобразования данных модели Review в формат JSON.
-    - permission_classes: AllowAny, доступ к этому представлению разрешен
-    для любого пользователя, аутентифицированного или нет.
+    :param queryset (QuerySet): Получение всех объектов модели Tag.
+    :param serializer_class (TagSerializer): Сериализатор, используемый
+    для преобразования данных модели Tag в формат JSON.
+    :param permission_classes (AllowAny): Разрешения, разрешающие доступ
+    к этому представлению любому пользователю, аутентифицированному или нет.
     """
 
     queryset = Tag.objects.all()
@@ -48,18 +41,17 @@ class TagViewSet(ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
-    """Класс используется для обработки запросов к модели Ingredient.
+    """Класс для обработки запросов к модели Ingredient.
 
-    Атрибуты класса:
-    - queryset: получение всех объектов модели Ingredient.
-    - serializer_class: TagSerializer - сериализатор, который будет
-    использоваться для преобразования данных модели Review в формат JSON.
-    - permission_classes: AllowAny, доступ к этому представлению разрешен
-    для любого пользователя, аутентифицированного или нет.
-    - filter_backends : DjangoFilterBackend, позволяет использовать фильтрацию
-    в представлении, чтобы ограничить количество объектов в ответе.
-    - filterset_class : IngredientFilter, фильтрация
-    по полю 'name' модели Ingredient.
+    :param queryset (QuerySet): Получение всех объектов модели Ingredient.
+    :param serializer_class (IngredientSerializer): Сериализатор, используемый
+    для преобразования данных модели Ingredient в формат JSON.
+    :param permission_classes (AllowAny): Разрешения, разрешающие доступ
+    к этому представлению любому пользователю, аутентифицированному или нет.
+    :param filter_backends (DjangoFilterBackend): Позволяет использовать
+    фильтрацию в представлении, чтобы ограничить количество объектов в ответе.
+    :param filterset_class (IngredientFilter): Фильтрация по полю 'name'
+    модели Ingredient.
     """
 
     queryset = Ingredient.objects.all()
@@ -70,18 +62,16 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(ModelViewSet):
-    """Класс используется для обработки запросов к модели Recipe.
+    """Класс для обработки запросов к модели Recipe.
 
-    Атрибуты класса:
-    - queryset: получение всех объектов модели Ingredient.
-    - serializer_class: TagSerializer - сериализатор, который будет
-    использоваться для преобразования данных модели Review в формат JSON.
-    - permission_classes: AllowAny, доступ к этому представлению разрешен
-    для любого пользователя, аутентифицированного или нет.
-    - filter_backends : DjangoFilterBackend, позволяет использовать фильтрацию
-    в представлении, чтобы ограничить количество объектов в ответе.
-    - filterset_class : IngredientFilter, фильтрация
-    по полю 'name' модели Ingredient.
+    :param queryset (QuerySet): Получение всех объектов модели Recipe.
+    :param serializer_class (dict): Словарь сериализаторов, используемых
+    для различных действий.
+    :param permission_classes (IsOwnerOrReadOnly): Разрешения, ограничивающие
+    доступ к этому представлению для владельца или для чтения.
+    :param filter_backends (DjangoFilterBackend): Позволяет использовать
+    фильтрацию в представлении, чтобы ограничить количество объектов в ответе.
+    :param filterset_class (RecipesFilter): Фильтрация по полям модели Recipe.
     """
 
     http_method_names = ('get', 'post', 'patch', 'delete')
@@ -97,7 +87,10 @@ class RecipeViewSet(ModelViewSet):
     }
 
     def get_serializer_class(self):
-        """Получает сериализатор в зависимости от применяемого действия."""
+        """Получает сериализатор в зависимости от применяемого действия.
+
+        :return: Сериализатор, соответствующий текущему действию.
+        """
         return self.serializer_action_classes.get(
             self.action, RecipeCreateSerializer
         )
@@ -105,11 +98,11 @@ class RecipeViewSet(ModelViewSet):
     def get_queryset(self):
         """Возвращает набор запросов рецептов с учетом пользователя и действия.
 
-        - Если действие 'list' или 'retrieve', добавляет аннотации
+        Если действие 'list' или 'retrieve', добавляет аннотации
         для избранных рецептов и рецептов в корзине покупок.
-        - Предварительно выбирает связанные объекты для оптимизации запросов.
+        Предварительно выбирает связанные объекты для оптимизации запросов.
 
-        :return: Отсортированный набор запросов рецептов
+        :return: Отсортированный набор запросов рецептов.
         """
         user = self.request.user
         recipes = Recipe.objects
@@ -142,27 +135,51 @@ class RecipeViewSet(ModelViewSet):
 
     @action(methods=['post'], detail=True, url_name='favorite',)
     def favorite(self, request, pk=None):
-        """Добавляет рецепт в избранное."""
+        """Добавляет рецепт в избранное.
+
+        :param request: HTTP-запрос.
+        :param pk: Первичный ключ рецепта.
+        :return: HTTP-ответ с данными сериализатора и статусом 201 Created.
+        """
         return self.add_recipe(request, pk)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk=None):
-        """Удаляет рецепт из избранного."""
+        """Удаляет рецепт из избранного.
+
+        :param request: HTTP-запрос.
+        :param pk: Первичный ключ рецепта.
+        :return: HTTP-ответ с соответствующим статусом.
+        """
         return self.delete_recipe(request, pk, FavoritesRecipe)
 
     @action(methods=['post'], detail=True, url_name='shopping_cart',)
     def shopping_cart(self, request, pk=None):
-        """Добавляет рецепт в список покупок."""
+        """Добавляет рецепт в список покупок.
+
+        :param request: HTTP-запрос.
+        :param pk: Первичный ключ рецепта.
+        :return: HTTP-ответ с данными сериализатора и статусом 201 Created.
+        """
         return self.add_recipe(request, pk)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk=None):
-        """Удалаяет рецепт из списка покупок."""
+        """Удалаяет рецепт из списка покупок.
+
+        :param request: HTTP-запрос.
+        :param pk: Первичный ключ рецепта.
+        :return: HTTP-ответ с соответствующим статусом.
+        """
         return self.delete_recipe(request, pk, ShoppingCart)
 
     @action(methods=['get'], detail=False, url_name='download',)
     def download_shopping_cart(self, request):
-        """Подготавливает и возвращает файл со списком покупок"""
+        """Подготавливает и возвращает файл со списком покупок.
+
+        :param request: HTTP-запрос.
+        :return: HTTP-ответ с PDF-файлом списка покупок.
+        """
         user = self.request.user
         shopping_cart = ShoppingCart.objects.filter(author=user)
         recipes = Recipe.objects.filter(shoppingcart__in=shopping_cart)
@@ -211,7 +228,12 @@ class RecipeViewSet(ModelViewSet):
         methods=['get'], detail=True, url_path='get-link', url_name='get_link'
     )
     def get_link(self, request, pk=None):
-        """Получение короткой ссылки на рецепт"""
+        """Получение короткой ссылки на рецепт.
+
+        :param request: HTTP-запрос.
+        :param pk: Первичный ключ рецепта.
+        :return: HTTP-ответ с короткой ссылкой на рецепт.
+        """
         recipe = self.get_object()
         if not recipe.short_link:
             while True:
@@ -229,7 +251,12 @@ class RecipeViewSet(ModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='short/(?P<short_link>[^/.]+)', url_name='recipe_by_short_link')
     def retrieve_by_short_link(self, request, short_link=None):
-        """Получение рецепта по короткой ссылке"""
+        """Получение рецепта по короткой ссылке.
+
+        :param request: HTTP-запрос.
+        :param short_link: Короткая ссылка на рецепт.
+        :return: HTTP-ответ с данными рецепта.
+        """
         recipe = get_object_or_404(Recipe, short_link=short_link)
         serializer = self.get_serializer(recipe)
         return Response(serializer.data)

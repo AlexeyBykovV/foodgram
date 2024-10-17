@@ -1,28 +1,28 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
-
-
-class IsAdminOrReadOnly(BasePermission):
-    """Класс определяющий права доступа.
-
-    Любой пользователь может читать объекты (GET, HEAD, OPTIONS).
-    Только пользователь может редактировать объекты (PUT, PATCH, DELETE).
-    """
-
-    def has_permission(self, request, view):
-        return (
-            request.method in SAFE_METHODS
-            or request.user and request.user.is_staff
-        )
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsOwnerOrReadOnly(BasePermission):
-    """Класс определяющий права доступа.
+    """Определяет права доступа к объектам.
 
-    Любой пользователь может читать объекты (GET, HEAD, OPTIONS).
-    Только автор может редактировать объекты (PUT, PATCH, DELETE).
+    Данный класс разрешает всем пользователям
+    выполнять операции чтения (GET, HEAD, OPTIONS) на объектах,
+    в то время как только автор объекта имеет
+    право редактировать (PUT, PATCH, DELETE) его.
+
+    Права доступа:
+    - Чтение: доступно всем пользователям.
+    - Запись: доступно только автору объекта.
     """
 
     def has_object_permission(self, request, view, obj):
+        """Проверяет, имеет ли пользователь разрешение на доступ к объекту.
+
+        :param request: Объект запроса, содержащий информацию
+        о текущем пользователе и методе.
+        :param view: Представление, обрабатывающее запрос.
+        :param obj: Объект, к которому проверяются права доступа.
+        :return: True, если доступ разрешен, иначе False.
+        """
         return (
             request.method in SAFE_METHODS
             or obj.author == request.user

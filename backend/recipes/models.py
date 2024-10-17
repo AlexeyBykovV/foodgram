@@ -2,27 +2,20 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from core.constants import (
-    TITLE_MAX_LENGTH,
-    NAME_MAX_LENGTH,
-    SLUG_MAX_LENGTH,
-    UNIT_MAX_LENGTH,
-    COOKING_MAX_TIME,
-    COOKING_MIN_TIME,
-    SHORT_LINK_SIZE,
-)
+from core.constants import (COOKING_MAX_TIME, COOKING_MIN_TIME,
+                            NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
+                            TITLE_MAX_LENGTH, UNIT_MAX_LENGTH)
 from core.models import AuthorModel
-
 
 User = get_user_model()
 
 
 class Tag(models.Model):
-    """Модель описывающая поля Тэг.
+    """Модель, описывающая тэги.
 
-    Атрибуты модели:
-    name: Название тега, уникальное для каждого тега.
-    slug: Уникальный слаг, автоматически генерируемый на основе названия тега.
+    :param name (CharField): Название тега, уникальное для каждого тега.
+    :param slug (SlugField): Уникальный слаг, автоматически генерируемый
+    на основе названия тега.
     """
 
     name = models.CharField(
@@ -37,19 +30,21 @@ class Tag(models.Model):
     )
 
     class Meta:
+        """Метакласс для модели Tag, определяющий параметры модели."""
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return self.name
 
 
 class Ingredient(models.Model):
-    """Модель описывающая поля Ингридиента.
+    """Модель, описывающая ингредиенты.
 
-    Атрибуты модели:
-    name: Название ингредиента, уникальное для каждого ингредиента.
-    measurement_unit: Единица измерения для ингредиента.
+    :param name (CharField): Название ингредиента, уникальное
+    для каждого ингредиента.
+    :param measurement_unit (CharField): Единица измерения для ингредиента.
     """
 
     name = models.CharField(
@@ -63,25 +58,29 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        """Метакласс для модели Ingredient, определяющий параметры модели."""
         ordering = ['name']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return self.name
 
 
 class Recipe(AuthorModel):
-    """Модель описывающая поля Рецепты. Наследуется от модели AuthorModel.
+    """Модель, описывающая рецепты. Наследуется от модели AuthorModel.
 
-    name: Название рецепта.
-    image: Поле для загрузки изображения рецепта.
-    text: Текстовое описание рецепта.
-    ingredients: Связь многие-ко-многим с моделью Ingredient через
-    промежуточную модель RecipeIngredients.
-    tags: Связь многие-ко-многим с моделью Tag, позволяющая устанавливать
-    несколько тегов для одного рецепта.
-    cooking_time: Время приготовления в минутах.
+        :param name (CharField): Название рецепта.
+        :param image (ImageField): Поле для загрузки изображения рецепта.
+        :param text (TextField): Текстовое описание рецепта.
+        :param ingredients (ManyToManyField): Связь многие-ко-многим
+        с моделью Ingredient через промежуточную модель RecipeIngredients.
+        :param tags (ManyToManyField): Связь многие-ко-многим с моделью Tag.
+        :param cooking_time (PositiveIntegerField): Время приготовления
+        в минутах.
+        :param pub_date (DateTimeField): Дата добавления рецепта.
+        :param short_link (CharField): Уникальная короткая ссылка на рецепт.
     """
 
     name = models.CharField(
@@ -121,20 +120,25 @@ class Recipe(AuthorModel):
     )
 
     class Meta:
+        """Метакласс для модели Recipe, определяющий параметры модели."""
         ordering = ['-pub_date']
         default_related_name = 'recipes'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return self.name
 
 
 class RecipeIngredients(models.Model):
     """Промежуточная модель для связи между рецептами и ингредиентами.
 
-    Хранит количество и единицу измерения для каждого ингредиента
-    в конкретном рецепте.
+    :param recipe (ForeignKey): Рецепт, к которому относится ингредиент.
+    :param ingredient (ForeignKey): Идентификатор ингредиента.
+    :param amount (IntegerField): Количество ингредиента в рецепте.
+    :param measurement_unit (CharField): Единица измерения
+    для количества ингредиента.
     """
 
     recipe = models.ForeignKey(
@@ -154,11 +158,15 @@ class RecipeIngredients(models.Model):
     )
 
     class Meta:
+        """Метакласс для модели RecipeIngredients,
+        определяющий параметры модели.
+        """
         default_related_name = 'recipe_ingredients'
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return (
             f'{self.recipe.name} : '
             f'{self.ingredient.name} - {self.amount} {self.measurement_unit}'
@@ -166,15 +174,18 @@ class RecipeIngredients(models.Model):
 
 
 class FavoritesRecipe(AuthorModel):
-    """Модель описывающая Избранное."""
+    """Модель, описывающая избранные рецепты.
 
-    recipe = models.ForeignKey(
+    :param recipe (ForeignKey): Рецепт, добавленный в избранное.
+    """
+    recipe = models.ForeignKey( 
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
     )
 
     class Meta:
+        """Метакласс для модели FavoritesRecipe, определяющий параметры модели."""
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
@@ -186,12 +197,15 @@ class FavoritesRecipe(AuthorModel):
         ]
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return f'Рецепт {self.recipe.name} добавлен в избранное.'
 
 
 class ShoppingCart(AuthorModel):
-    """Модель описывающая Список покупок."""
+    """Модель, описывающая список покупок.
 
+    :param recipe (ForeignKey): Рецепт, добавленный в список покупок.
+    """
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -199,6 +213,7 @@ class ShoppingCart(AuthorModel):
     )
 
     class Meta:
+        """Метакласс для модели ShoppingCart, определяющий параметры модели."""
         default_related_name = 'shoppingcart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
@@ -210,4 +225,5 @@ class ShoppingCart(AuthorModel):
         ]
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return f'Рецепт {self.recipe.name} добавлен в список покупок.'

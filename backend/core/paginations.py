@@ -4,7 +4,7 @@ from .constants import PAGE_SIZE_MAX
 
 
 class RecipePagination(PageNumberPagination):
-    """Пагинация для проекта"""
+    """Кастомная пагинация для проекта."""
 
     page_size = PAGE_SIZE_MAX
     page_size_query_param = 'limit'

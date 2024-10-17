@@ -1,14 +1,22 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import UniqueConstraint, CheckConstraint, Q, F
+from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
-from core.constants import (EMAIL_MAX_LENGTH, USER_MAX_LENGTH)
+from core.constants import EMAIL_MAX_LENGTH, USER_MAX_LENGTH
 from core.models import AuthorModel
+
 from .validators import username_validator
 
 
 class User(AbstractUser):
-    """Модель описывающая поля Пользователя."""
+    """Модель, описывающая поля пользователя.
+
+    :param email (EmailField): Электронная почта пользователя, уникальная.
+    :param username (CharField): Имя пользователя, уникальное, с валидатором.
+    :param first_name (CharField): Имя пользователя, необязательное.
+    :param last_name (CharField): Фамилия пользователя, необязательная.
+    :param avatar (ImageField): Аватар пользователя, необязательный.
+    """
 
     email = models.EmailField(
         max_length=EMAIL_MAX_LENGTH, verbose_name='email', unique=True,
@@ -33,6 +41,21 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
 
     class Meta:
+        """Метакласс для модели User, определяющий параметры модели.
+
+        :param ordering (list): Список полей,
+        по которым будет осуществляться сортировка.
+        :param verbose_name (str): Человекочитаемое имя модели
+        в единственном числе.
+        :param verbose_name_plural (str): Человекочитаемое имя модели
+        во множественном числе.
+        :param constraints (tuple): Ограничения для модели,
+        включая уникальные ограничения.
+
+        Ограничения:
+            - UniqueConstraint: Гарантирует, что каждая пара
+            имя пользователя и электронная почта уникальна.
+        """
         ordering = ['username']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
@@ -45,7 +68,20 @@ class User(AbstractUser):
 
 
 class Subscriptions(AuthorModel):
-    """Модель описывающая поля Подписки пользователя."""
+    """Модель, описывающая подписки пользователя.
+
+    :param user (ForeignKey): Пользователь, который подписывается.
+    :param author (ForeignKey): Пользователь, на которого подписываются.
+
+    - Метакласс Meta:
+    :param default_related_name (str): Имя обратной связи для доступа
+    к подпискам.
+    :param verbose_name (str): Человекочитаемое имя модели
+    в единственном числе.
+    :param verbose_name_plural (str): Человекочитаемое имя модели
+    во множественном числе.
+    :param constraints (tuple): Ограничения для уникальности и проверок.
+    """
 
     user = models.ForeignKey(
         User,
@@ -55,12 +91,12 @@ class Subscriptions(AuthorModel):
     )
 
     class Meta:
-        """Мета-класс класса Follow, определяющий ограничения.
+        """Мета-класс для модели Subscriptions, определяющий ограничения.
 
-        - UniqueConstraint - ограничение гарантирует,
-        что каждая пара пользователь-автор будет уникальной.
-        - CheckConstraint - ограничение проверяет,
-        что пользователь не подписывается на самого себя.
+        :param UniqueConstraint: Гарантирует, что каждая пара
+        пользователь-автор будет уникальной.
+        :param CheckConstraint: Проверяет, что пользователь
+        не подписывается на самого себя.
         """
 
         default_related_name = 'subscribers'
@@ -78,14 +114,20 @@ class Subscriptions(AuthorModel):
         )
 
     def __str__(self):
+        """Возвращает строковое представление подписки."""
         return f'{self.user.username} подписался на {self.author.username}'
 
     @classmethod
     def get_prefetch(cls, lookup, user):
-        """Метод предназначен для оптимизации запросов к базе данных.
+        """Оптимизация запросов к базе данных.
 
-        Предварительно загружает подписчиков, связанных
-        с конкретным пользователем.
+        Предварительно загружает подписчиков,
+        связанных с конкретным пользователем.
+
+        :param cls (type): Класс модели Subscriptions.
+        :param lookup (str): Имя поля для предварительной загрузки.
+        :param user: Пользователь, для которого загружаются подписчики.
+        :return Prefetch: Объект Prefetch для оптимизации запросов.
         """
         return models.Prefetch(
             lookup,
