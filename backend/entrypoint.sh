@@ -3,6 +3,8 @@
 echo 'Running migrations...'
 python manage.py makemigrations
 python manage.py migrate
+
+echo 'Running import...'
 python manage.py import_ingredients
 
 echo 'Collecting static files...'

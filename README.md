@@ -1,5 +1,5 @@
 # Фудграм - сайт для обмена рецептами понравившихся блюд.
-# Запуск проекта Фудграм в контейнерах и CI/CD с помощью GitHub Actions.
+## Запуск проекта Фудграм в контейнерах и CI/CD с помощью GitHub Actions.
 
 ## Описание
 
@@ -59,7 +59,9 @@ sudo docker compose -f docker-compose.production.yml up
 Будет выполнено:
 1. Скачивание образов с DockerHub
 2. Развернуты контейнеры отвечающие за `db`, `backend`, `frontend`, `proxy` и созданы volume `pg_data`, `static`, `media`.
-3. Установлены необходимые зависимости и выполнены необходимые миграции и сбор статики
+3. Установлены необходимые зависимости и выполнены необходимые импорты, миграции и сбор статики
+
+Добавьте теги для рецептов через админ-панель проекта http://localhost/admin/, это поле является обязательным для сохранения рецепта и добавляется только админом.
 
 ## Запуск через GitHub на локальном устройстве
 
@@ -73,17 +75,20 @@ git clone git@github.com:AlexeyBykovV/foodgram.git
 sudo docker compose -f docker-compose.yml up
 ```
 
-Выполняем сбор статистики и миграцию для бэкенда. Статистика фронтенда собирается во время запуска контейнера, после чего он останавливается. 
+Выполняем миграцию, импорт и сбор статистики для бэкенда. Статистика фронтенда собирается во время запуска контейнера, после чего он останавливается. 
 ```bash
-sudo docker compose -f [имя-файла-docker-compose.yml] exec backend python manage.py migrate
-sudo docker compose -f [имя-файла-docker-compose.yml] exec backend python manage.py collectstatic
-sudo docker compose -f [имя-файла-docker-compose.yml] exec backend cp -r /app/collected_static/. /static/static/
+sudo docker compose -f [имя-файла-docker-compose.yml] exec foodgram-backend python manage.py migrate
+sudo docker compose -f [имя-файла-docker-compose.yml] exec foodgram-backend python manage.py import_infredients
+sudo docker compose -f [имя-файла-docker-compose.yml] exec foodgram-backend python manage.py collectstatic
+sudo docker compose -f [имя-файла-docker-compose.yml] exec foodgram-backend cp -r /app/collected_static/. /static/static/
 ```
 
 Проект доступен по адресу:
 ```bash
 http://localhost:8000/
 ```
+
+Добавьте теги для рецептов через админ-панель проекта http://localhost/admin/, это поле является обязательным для сохранения рецепта и добавляется только админом.
 
 ## Остановка проекта foodgram
 
