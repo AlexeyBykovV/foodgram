@@ -27,7 +27,7 @@ services:
       - static:/frontend_static
 
   nginx:
-    image: alexeybykov112/foodgram-proxy
+    image: alexeybykov112/foodgram-gateway
     env_file: .env
     ports:
       - "8000:80"
