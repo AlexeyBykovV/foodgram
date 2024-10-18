@@ -6,9 +6,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from core.paginations import RecipePagination
 from .models import Subscriptions
 from .serializers import UserAvatarSerializer, UserSubscriptionsSerializer
-from core.paginations import RecipePagination
 
 User = get_user_model()
 

@@ -2,9 +2,15 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from core.constants import (COOKING_MAX_TIME, COOKING_MIN_TIME,
-                            NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
-                            TITLE_MAX_LENGTH, UNIT_MAX_LENGTH)
+from core.constants import (
+    COOKING_MAX_TIME,
+    COOKING_MIN_TIME,
+    NAME_MAX_LENGTH,
+    SHORT_LINK_SIZE,
+    SLUG_MAX_LENGTH,
+    TITLE_MAX_LENGTH,
+    UNIT_MAX_LENGTH
+)
 from core.models import AuthorModel
 
 User = get_user_model()

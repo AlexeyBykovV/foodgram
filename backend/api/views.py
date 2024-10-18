@@ -13,16 +13,26 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from core.paginations import RecipePagination
+from recipes.models import (
+    FavoritesRecipe,
+    Ingredient,
+    Recipe,
+    RecipeIngredients,
+    ShoppingCart,
+    Tag
+)
+from users.models import Subscriptions
 from .filters import IngredientFilter, RecipesFilter
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (FavoritesSerializer, IngredientSerializer,
-                          RecipeCreateSerializer, RecipeSerializer,
-                          ShoppingCartSerializer, TagSerializer)
-from core.paginations import RecipePagination
-from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
-                            RecipeIngredients, ShoppingCart, Tag)
-from users.models import Subscriptions
-
+from .serializers import (
+    FavoritesSerializer,
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    ShoppingCartSerializer,
+    TagSerializer
+)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
