@@ -5,9 +5,8 @@ from rest_framework.serializers import (CurrentUserDefault, IntegerField,
                                         SlugRelatedField, ValidationError)
 from rest_framework.validators import UniqueTogetherValidator
 
-from recipes.models import Recipe
-
 from .models import Subscriptions
+from recipes.models import Recipe
 
 User = get_user_model()
 

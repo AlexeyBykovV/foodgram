@@ -13,16 +13,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from core.paginations import RecipePagination
-from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
-                            RecipeIngredients, ShoppingCart, Tag)
-from users.models import Subscriptions
-
 from .filters import IngredientFilter, RecipesFilter
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (FavoritesSerializer, IngredientSerializer,
                           RecipeCreateSerializer, RecipeSerializer,
                           ShoppingCartSerializer, TagSerializer)
+from core.paginations import RecipePagination
+from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
+from users.models import Subscriptions
+
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -243,13 +243,20 @@ class RecipeViewSet(ModelViewSet):
                     recipe.save()
                     break
         return Response(
-            {'short_link': request.build_absolute_uri(
+            {
+                'short_link': request.build_absolute_uri(
                     f'/recipes/short/{recipe.short_link}'
-                )},
+                )
+            },
             status=status.HTTP_200_OK
         )
 
-    @action(methods=['get'], detail=False, url_path='short/(?P<short_link>[^/.]+)', url_name='recipe_by_short_link')
+    @action(
+        methods=['get'],
+        detail=False,
+        url_path='short/(?P<short_link>[^/.]+)',
+        url_name='recipe_by_short_link'
+    )
     def retrieve_by_short_link(self, request, short_link=None):
         """Получение рецепта по короткой ссылке.
 

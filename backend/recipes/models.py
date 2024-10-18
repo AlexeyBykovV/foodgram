@@ -178,14 +178,16 @@ class FavoritesRecipe(AuthorModel):
 
     :param recipe (ForeignKey): Рецепт, добавленный в избранное.
     """
-    recipe = models.ForeignKey( 
+    recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
     )
 
     class Meta:
-        """Метакласс для модели FavoritesRecipe, определяющий параметры модели."""
+        """Метакласс для модели FavoritesRecipe,
+        определяющий параметры модели.
+        """
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'

@@ -11,7 +11,7 @@ from users.serializers import UserSerializer
 
 
 class TagSerializer(ModelSerializer):
-    """Сериализатор для преобразования данных модели Tag в формат JSON."""
+    """Сериализатор преобразования данных модели Tag в формат JSON."""
 
     class Meta:
         model = Tag
@@ -19,7 +19,7 @@ class TagSerializer(ModelSerializer):
 
 
 class IngredientSerializer(ModelSerializer):
-    """Сериализатор для преобразования данных модели Ingredient в формат JSON."""
+    """Сериализатор преобразования данных модели Ingredient в формат JSON."""
 
     class Meta:
         model = Ingredient
@@ -27,7 +27,7 @@ class IngredientSerializer(ModelSerializer):
 
 
 class RecipeSerializer(ModelSerializer):
-    """Сериализатор для преобразования данных модели Recipe в формат JSON."""
+    """Сериализатор преобразования данных модели Recipe в формат JSON."""
 
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
@@ -94,7 +94,7 @@ class RecipeSerializer(ModelSerializer):
 
 
 class RecipeIngredientSerializer(ModelSerializer):
-    """Сериализатор для представления ингредиента в RecipeCreateSerializer."""
+    """Сериализатор представления ингредиента в RecipeCreateSerializer."""
 
     id = PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
@@ -233,7 +233,7 @@ class RecipeCreateSerializer(ModelSerializer):
 
 
 class FavoritesShoppingCartSerializer(ModelSerializer):
-    """Родительский сериализатор для добавления в Избранное/Список покупок."""
+    """Родительский сериализатор добавления в Избранное/Список покупок."""
 
     class Meta:
         model = None
@@ -282,14 +282,14 @@ class FavoritesShoppingCartSerializer(ModelSerializer):
 
 
 class FavoritesSerializer(FavoritesShoppingCartSerializer):
-    """Сериализатор для добавления рецептов в избранное."""
+    """Сериализатор добавления рецептов в избранное."""
 
     class Meta(FavoritesShoppingCartSerializer.Meta):
         model = FavoritesRecipe
 
 
 class ShoppingCartSerializer(FavoritesShoppingCartSerializer):
-    """Сериализатор для добавления рецептов в список покупок."""
+    """Сериализатор добавления рецептов в список покупок."""
 
     class Meta(FavoritesShoppingCartSerializer.Meta):
         model = ShoppingCart
