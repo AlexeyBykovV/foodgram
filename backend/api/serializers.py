@@ -1,18 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import (
-    ModelSerializer, PrimaryKeyRelatedField, SerializerMethodField
-)
+from rest_framework.serializers import (ModelSerializer,
+                                        PrimaryKeyRelatedField,
+                                        SerializerMethodField)
 
-from recipes.models import (
-    FavoritesRecipe,
-    Ingredient,
-    Recipe,
-    RecipeIngredients,
-    ShoppingCart,
-    Tag
-)
+from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
 from users.serializers import UserSerializer
 
 
