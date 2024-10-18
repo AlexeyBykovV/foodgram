@@ -124,7 +124,7 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./nginx/
+          context: ./infra/
           push: true
           tags: alexeybykov112/foodgram-proxy:latest
 
