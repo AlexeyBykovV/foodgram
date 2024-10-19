@@ -149,10 +149,10 @@ class RecipeViewSet(ModelViewSet):
         return recipes.order_by('-pub_date').all()
 
     @action(
-            methods=['post'],
-            detail=True,
-            url_path='favorite',
-            url_name='favorite',
+        methods=['post'],
+        detail=True,
+        url_path='favorite',
+        url_name='favorite',
     )
     def favorite(self, request, pk=None):
         """Добавляет рецепт в избранное.
