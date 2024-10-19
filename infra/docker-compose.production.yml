@@ -13,21 +13,21 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    image: alexeybykov112/foodgram-backend
+    image: alexeybykov112/foodgram_backend
     env_file: .env
     volumes:
       - static:/backend_static
       - media:/app/media
 
   frontend:
-    image: alexeybykov112/foodgram-frontend
+    image: alexeybykov112/foodgram_frontend
     env: .env
     command: cp -r /app/build/. /frontend_static/
     volumes:
       - static:/frontend_static
 
   nginx:
-    image: alexeybykov112/foodgram-gateway
+    image: alexeybykov112/foodgram+_gateway
     env_file: .env
     ports:
       - "8000:80"
