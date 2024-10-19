@@ -16,7 +16,6 @@ class UserSerializer(ModelSerializer):
     """Сериализатор для представления пользователей
     с информацией о подписках.
     """
-
     is_subscribed = SerializerMethodField()
 
     class Meta:

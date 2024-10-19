@@ -4,14 +4,19 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 class IsOwnerOrReadOnly(BasePermission):
     """Определяет права доступа к объектам.
 
-    Данный класс разрешает всем пользователям
-    выполнять операции чтения (GET, HEAD, OPTIONS) на объектах,
-    в то время как только автор объекта имеет
-    право редактировать (PUT, PATCH, DELETE) его.
+    Этот класс разрешает всем пользователям выполнять операции
+    чтения (GET, HEAD, OPTIONS) на объектах. Однако только автор
+    объекта имеет право редактировать (PUT, PATCH, DELETE) его.
 
     Права доступа:
     - Чтение: доступно всем пользователям.
     - Запись: доступно только автору объекта.
+
+    Методы:
+    - has_permission: Проверяет, имеет ли пользователь разрешение
+    на выполнение действия (например, создание, редактирование, удаление).
+    - has_object_permission: Проверяет, имеет ли пользователь
+    разрешение на доступ к конкретному объекту.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -23,7 +28,17 @@ class IsOwnerOrReadOnly(BasePermission):
         :param obj: Объект, к которому проверяются права доступа.
         :return: True, если доступ разрешен, иначе False.
         """
-        return (
-            request.method in SAFE_METHODS
-            or obj.author == request.user
-        )
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.author == request.user
+
+    def has_permission(self, request, view):
+        """Проверяет, имеет ли пользователь разрешение на выполнение действия.
+
+        :param request: Объект запроса.
+        :param view: Представление, обрабатывающее запрос.
+        :return: True, если доступ разрешен, иначе False.
+        """
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            return request.user.is_authenticated
+        return True

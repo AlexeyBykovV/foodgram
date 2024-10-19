@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (ModelSerializer,
                                         PrimaryKeyRelatedField,
@@ -151,6 +152,10 @@ class RecipeCreateSerializer(ModelSerializer):
         tags = data.get('tags', [])
         if not tags:
             raise ValidationError('В рецепте не выбран тэг.')
+
+        tag_ids = [tag.id for tag in tags]
+        if len(tag_ids) != len(set(tag_ids)):
+            raise ValidationError('Теги не должны повторяться.')
 
         ingredients = data.get('recipe_ingredients', [])
         if not ingredients:

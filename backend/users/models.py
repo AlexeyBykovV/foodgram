@@ -28,10 +28,10 @@ class User(AbstractUser):
         validators=[username_validator],
     )
     first_name = models.CharField(
-        max_length=USER_MAX_LENGTH, verbose_name='Имя', blank=True,
+        max_length=USER_MAX_LENGTH, verbose_name='Имя',
     )
     last_name = models.CharField(
-        max_length=USER_MAX_LENGTH, verbose_name='Фамилия', blank=True,
+        max_length=USER_MAX_LENGTH, verbose_name='Фамилия',
     )
     avatar = models.ImageField(
         'Аватар', upload_to='avatars/', blank=True, null=True

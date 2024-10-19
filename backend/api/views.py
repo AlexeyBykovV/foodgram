@@ -85,6 +85,25 @@ class RecipeViewSet(ModelViewSet):
         'shopping_cart': ShoppingCartSerializer,
     }
 
+    def list(self, request, *args, **kwargs):
+        """Получение списка рецептов с пагинацией."""
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get_paginated_response(self, data):
+        """Формирование пагинированного ответа."""
+        return Response({
+            'count': self.paginator.page.paginator.count,
+            'next': self.paginator.get_next_link(),
+            'previous': self.paginator.get_previous_link(),
+            'results': data})
+
     def get_serializer_class(self):
         """Получает сериализатор в зависимости от применяемого действия.
 
@@ -104,20 +123,17 @@ class RecipeViewSet(ModelViewSet):
         :return: Отсортированный набор запросов рецептов.
         """
         user = self.request.user
-        recipes = Recipe.objects
+        recipes = Recipe.objects.select_related('author').prefetch_related(
+            Prefetch(
+                'recipe_ingredients',
+                queryset=RecipeIngredients.objects.select_related('ingredient')
+            ),
+            'tags',
+            Subscriptions.get_prefetch('author__subscribers', user)
+        )
 
         if self.action in ['list', 'retrieve']:
-            subscriptions_prefetch = Subscriptions.get_prefetch(
-                'author__subscribers', user
-            )
-            ingredients_related = RecipeIngredients.objects.select_related(
-                'ingredient'
-            )
-            recipes = recipes.select_related('author').prefetch_related(
-                Prefetch('recipe_ingredients', queryset=ingredients_related),
-                'tags',
-                subscriptions_prefetch
-            ).annotate(
+            recipes = recipes.annotate(
                 is_favorited=Exists(
                     FavoritesRecipe.objects.filter(
                         author_id=user.id, recipe=OuterRef('pk')
@@ -132,7 +148,12 @@ class RecipeViewSet(ModelViewSet):
 
         return recipes.order_by('-pub_date').all()
 
-    @action(methods=['post'], detail=True, url_name='favorite',)
+    @action(
+            methods=['post'],
+            detail=True,
+            url_path='favorite',
+            url_name='favorite',
+    )
     def favorite(self, request, pk=None):
         """Добавляет рецепт в избранное.
 
@@ -152,7 +173,12 @@ class RecipeViewSet(ModelViewSet):
         """
         return self.delete_recipe(request, pk, FavoritesRecipe)
 
-    @action(methods=['post'], detail=True, url_name='shopping_cart',)
+    @action(
+        methods=['post'],
+        detail=True,
+        url_path='shopping_cart',
+        url_name='shopping_cart',
+    )
     def shopping_cart(self, request, pk=None):
         """Добавляет рецепт в список покупок.
 
@@ -243,7 +269,7 @@ class RecipeViewSet(ModelViewSet):
                     break
         return Response(
             {
-                'short_link': request.build_absolute_uri(
+                'short-link': request.build_absolute_uri(
                     f'/recipes/short/{recipe.short_link}'
                 )
             },
