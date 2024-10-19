@@ -15,8 +15,12 @@ DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(', ')
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(', ')
+csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').replace(' ', '').split(',')
 
+CSRF_TRUSTED_ORIGINS = [
+    origin if origin.startswith(('http://', 'https://')) else f'http://{origin}'
+    for origin in csrf_origins if origin
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
