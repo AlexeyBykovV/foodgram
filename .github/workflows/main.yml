@@ -87,7 +87,7 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: alexeybykov112/foodfram_frontend:latest
+          tags: alexeybykov112/foodgram_frontend:latest
 
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
