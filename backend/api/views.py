@@ -85,25 +85,6 @@ class RecipeViewSet(ModelViewSet):
         'shopping_cart': ShoppingCartSerializer,
     }
 
-    def list(self, request, *args, **kwargs):
-        """Получение списка рецептов с пагинацией."""
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def get_paginated_response(self, data):
-        """Формирование пагинированного ответа."""
-        return Response({
-            'count': self.paginator.page.paginator.count,
-            'next': self.paginator.get_next_link(),
-            'previous': self.paginator.get_previous_link(),
-            'results': data})
-
     def get_serializer_class(self):
         """Получает сериализатор в зависимости от применяемого действия.
 
