@@ -1,7 +1,6 @@
-from django.conf import settings
 from django.db import models
 
-User = get_user_model()
+from recipes.models import Recipe
 
 
 class AuthorModel(models.Model):
@@ -17,11 +16,8 @@ class AuthorModel(models.Model):
     Удаление пользователя приведет к удалению всех связанных записей.
     """
 
-    # AUTH_USER_MODEL = settings.AUTH_USER_MODEL
-
     author = models.ForeignKey(
-        # AUTH_USER_MODEL,
-        User,
+        'users.User',
         on_delete=models.CASCADE,
         verbose_name='Автор рецепта',
     )
@@ -29,3 +25,20 @@ class AuthorModel(models.Model):
     class Meta:
         """Метакласс для модели AuthorModel, определяющий параметры модели."""
         abstract = True
+
+
+class RecipeRelationModel(AuthorModel):
+    """Базовая модель для отношений с рецептами."""
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        """Возвращает строковое представление объекта."""
+        return f'Рецепт {self.recipe.name}'

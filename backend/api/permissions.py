@@ -41,8 +41,10 @@ class IsOwnerOrReadOnly(BasePermission):
         :return: True, если доступ разрешен, иначе False.
         """
         # if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-        #     return request.user.is_authenticated
-        # return True
+        if request.method not in SAFE_METHODS:
+            return request.user.is_authenticated
+        return True
+
         return (
             request.method not in SAFE_METHODS
             and not request.user.is_authenticated

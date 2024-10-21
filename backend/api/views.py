@@ -251,7 +251,7 @@ class RecipeViewSet(ModelViewSet):
         return Response(
             {
                 'short-link': request.build_absolute_uri(
-                    f'/recipes/short/{recipe.short_link}'
+                    f'/recipes/s/{recipe.short_link}'
                 )
             },
             status=status.HTTP_200_OK
@@ -260,7 +260,7 @@ class RecipeViewSet(ModelViewSet):
     @action(
         methods=['get'],
         detail=False,
-        url_path='short/(?P<short_link>[^/.]+)',
+        url_path='s/(?P<short_link>[^/.]+)',
         url_name='recipe_by_short_link'
     )
     def retrieve_by_short_link(self, request, short_link=None):
@@ -302,7 +302,7 @@ class RecipeViewSet(ModelViewSet):
             recipe=recipe,
         ).delete()
 
-        if deleted_count == 0:
+        if not deleted_count:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

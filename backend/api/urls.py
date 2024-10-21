@@ -20,7 +20,7 @@ user_router_v1.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
     path(
-        'recipes/short/<str:short_link>/',
+        'recipes/s/<str:short_link>/',
         RecipeViewSet.as_view({'get': 'retrieve_by_short_link'}),
         name='recipe_by_short_link'
     ),

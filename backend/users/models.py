@@ -56,7 +56,7 @@ class User(AbstractUser):
             - UniqueConstraint: Гарантирует, что каждая пара
             имя пользователя и электронная почта уникальна.
         """
-        ordering = ['username']
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         constraints = (

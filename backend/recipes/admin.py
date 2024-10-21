@@ -23,13 +23,14 @@ class IngredientAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     """Настройка модели Рецептов в админке"""
 
-    list_display = ('author', 'name', 'ingredients', 'tags', 'in_favourites')
+    list_display = ('author', 'name', 'in_favourites')
+    # 'ingredients', 'tags',
     search_fields = ('author', 'name')
     list_filter = ('tags',)
 
+    @admin.display(description='В избранном')
     def in_favourites(self, obj):
         """Количество добавлений рецептов в избранном"""
-        # return FavoritesRecipe.objects.filter(recipe=obj).count()
         return obj.favorites.count()
 
     # В админке должна быть возможность создать полноценный рецепт.

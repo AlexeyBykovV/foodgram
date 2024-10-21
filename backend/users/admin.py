@@ -7,7 +7,6 @@ from .models import Subscriptions, User
 
 
 @admin.register(User)
-# class CustomUserAdmin(admin.ModelAdmin):
 class CustomUserAdmin(UserAdmin):
     list_display = (
         'id',
@@ -20,10 +19,12 @@ class CustomUserAdmin(UserAdmin):
     )
     search_fields = ('email', 'username')
 
+    @admin.display(description='Подписчиков')
     def subscribers_count(self, obj):
         """Возвращает количество подписчиков у пользователя."""
         return obj.subscribers.count()
 
+    @admin.display(description='Рецептов')
     def recipes_count(self, obj):
         """Возвращает количество рецептов, созданных пользователем."""
         return obj.recipes.count()

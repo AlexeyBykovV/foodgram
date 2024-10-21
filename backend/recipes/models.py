@@ -2,10 +2,11 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from core.constants import (COOKING_MAX_TIME, COOKING_MIN_TIME,
+from core.constants import (AMOUNT_MAX, AMOUNT_MIN,
+                            COOKING_MAX_TIME, COOKING_MIN_TIME,
                             NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
                             TITLE_MAX_LENGTH, UNIT_MAX_LENGTH)
-from core.models import AuthorModel
+from core.models import AuthorModel, RecipeRelationModel
 
 User = get_user_model()
 
@@ -98,7 +99,7 @@ class Recipe(AuthorModel):
         verbose_name='Ингредиенты рецепта',
     )
     tags = models.ManyToManyField(Tag, verbose_name='Тэги')
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления в минутах',
         validators=[
             MaxValueValidator(
@@ -121,7 +122,7 @@ class Recipe(AuthorModel):
 
     class Meta:
         """Метакласс для модели Recipe, определяющий параметры модели."""
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
         default_related_name = 'recipes'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
@@ -151,7 +152,20 @@ class RecipeIngredients(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
-    amount = models.IntegerField(verbose_name='Количество ингредиента')
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество ингредиента',
+        validators=[
+            MaxValueValidator(
+                AMOUNT_MAX,
+                f'Количество ингредиента не может быть больше {AMOUNT_MAX}.',
+            ),
+            MinValueValidator(
+                AMOUNT_MIN,
+                'Количество ингредиента не может быть меньше '
+                f'или равно {AMOUNT_MIN}.',
+            ),
+        ],
+    )
     measurement_unit = models.CharField(
         max_length=UNIT_MAX_LENGTH,
         verbose_name='Единица измерения',
@@ -173,18 +187,18 @@ class RecipeIngredients(models.Model):
         )
 
 
-class FavoritesRecipe(AuthorModel):
+class FavoritesRecipe(RecipeRelationModel):
     """Модель, описывающая избранные рецепты.
 
     :param recipe (ForeignKey): Рецепт, добавленный в избранное.
     """
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        verbose_name='Рецепт',
-    )
+    # recipe = models.ForeignKey(
+    #     Recipe,
+    #     on_delete=models.CASCADE,
+    #     verbose_name='Рецепт',
+    # )
 
-    class Meta:
+    class Meta(RecipeRelationModel.Meta):
         """Метакласс для модели FavoritesRecipe,
         определяющий параметры модели.
         """
@@ -200,21 +214,22 @@ class FavoritesRecipe(AuthorModel):
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
-        return f'Рецепт {self.recipe.name} добавлен в избранное.'
+        # return f'Рецепт {self.recipe.name} добавлен в избранное.'
+        return super().__str__() + ' добавлен в избранное.'
 
 
-class ShoppingCart(AuthorModel):
+class ShoppingCart(RecipeRelationModel):
     """Модель, описывающая список покупок.
 
     :param recipe (ForeignKey): Рецепт, добавленный в список покупок.
     """
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        verbose_name='Рецепт',
-    )
+    # recipe = models.ForeignKey(
+    #     Recipe,
+    #     on_delete=models.CASCADE,
+    #     verbose_name='Рецепт',
+    # )
 
-    class Meta:
+    class Meta(RecipeRelationModel.Meta):
         """Метакласс для модели ShoppingCart, определяющий параметры модели."""
         default_related_name = 'shoppingcart'
         verbose_name = 'Список покупок'
@@ -228,4 +243,4 @@ class ShoppingCart(AuthorModel):
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
-        return f'Рецепт {self.recipe.name} добавлен в список покупок.'
+        return super().__str__() + ' добавлен в список покупок.'
