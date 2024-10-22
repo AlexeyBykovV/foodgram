@@ -6,7 +6,7 @@ from core.constants import (AMOUNT_MAX, AMOUNT_MIN,
                             COOKING_MAX_TIME, COOKING_MIN_TIME,
                             NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
                             TITLE_MAX_LENGTH, UNIT_MAX_LENGTH)
-from core.models import AuthorModel, RecipeRelationModel
+from core.models import AuthorModel
 
 User = get_user_model()
 
@@ -187,16 +187,38 @@ class RecipeIngredients(models.Model):
         )
 
 
+class RecipeRelationModel(AuthorModel):
+    """Базовая модель для отношений с рецептами.
+
+    Эта модель наследуется от модели AuthorModel и добавляет поле ForeignKey
+    для связи с моделью Recipe. Она также определяет абстрактный метакласс
+    и метод __str__, который возвращает строковое представление объекта.
+
+    :param recipe (ForeignKey): Связь многие-ко-одному с моделью Recipe.
+    """
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        """Возвращает строковое представление объекта."""
+        return f'Рецепт {self.recipe.name}'
+
+
 class FavoritesRecipe(RecipeRelationModel):
     """Модель, описывающая избранные рецепты.
 
-    :param recipe (ForeignKey): Рецепт, добавленный в избранное.
+    Эта модель наследуется от модели RecipeRelationModel и добавляет уникальное
+    ограничение на поле (author, recipe), чтобы гарантировать, что каждый
+    рецепт может быть добавлен в избранное только один раз
+    для каждого пользователя.
     """
-    # recipe = models.ForeignKey(
-    #     Recipe,
-    #     on_delete=models.CASCADE,
-    #     verbose_name='Рецепт',
-    # )
 
     class Meta(RecipeRelationModel.Meta):
         """Метакласс для модели FavoritesRecipe,
@@ -214,20 +236,17 @@ class FavoritesRecipe(RecipeRelationModel):
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
-        # return f'Рецепт {self.recipe.name} добавлен в избранное.'
         return super().__str__() + ' добавлен в избранное.'
 
 
 class ShoppingCart(RecipeRelationModel):
     """Модель, описывающая список покупок.
 
-    :param recipe (ForeignKey): Рецепт, добавленный в список покупок.
+    Эта модель наследуется от модели RecipeRelationModel и добавляет уникальное
+    ограничение на поле (author, recipe), чтобы гарантировать, что каждый
+    рецепт может быть добавлен в список покупок только один раз
+    для каждого пользователя.
     """
-    # recipe = models.ForeignKey(
-    #     Recipe,
-    #     on_delete=models.CASCADE,
-    #     verbose_name='Рецепт',
-    # )
 
     class Meta(RecipeRelationModel.Meta):
         """Метакласс для модели ShoppingCart, определяющий параметры модели."""
