@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import FavoritesRecipe, Ingredient, Recipe, ShoppingCart, Tag
+from .models import (
+    FavoritesRecipe, Ingredient, Recipe, RecipeIngredients, ShoppingCart, Tag, 
+)
+
+
+class RecipeIngredientsInline(admin.TabularInline):
+    """Строчное представление Ингредиента в Рецепте"""
+
+    model = RecipeIngredients
+    min_num = 1
 
 
 @admin.register(Tag)
@@ -23,17 +32,16 @@ class IngredientAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     """Настройка модели Рецептов в админке"""
 
-    list_display = ('author', 'name', 'in_favourites')
-    # 'ingredients', 'tags',
+    list_display = ('name', 'author', 'in_favourites')
+    list_display_links = ('name',)
     search_fields = ('author', 'name')
     list_filter = ('tags',)
+    inlines = [RecipeIngredientsInline]
 
     @admin.display(description='В избранном')
     def in_favourites(self, obj):
         """Количество добавлений рецептов в избранном"""
         return obj.favorites.count()
-
-    # В админке должна быть возможность создать полноценный рецепт.
 
 
 @admin.register(FavoritesRecipe)
@@ -44,3 +52,5 @@ class FavouritesRecipeAdmin(admin.ModelAdmin):
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     """Настройка модели Список покупок в админке"""
+
+

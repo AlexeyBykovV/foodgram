@@ -7,8 +7,8 @@
 <body>
     <h1>Список покупок</h1>
     <ul>
-    {% for name, data in ingredients.items %}
-        <li>{{ name }} - {{ data.amount }} {{ data.measurement_unit }}</li>
+    {% for ingredient in ingredients %}
+        <li>{{ ingredient.ingredient__name }} - {{ ingredient.total_amount }} {{ ingredient.ingredient__measurement_unit }}</li>
     {% endfor %}
     </ul>
 </body>

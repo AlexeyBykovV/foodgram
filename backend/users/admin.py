@@ -17,6 +17,7 @@ class CustomUserAdmin(UserAdmin):
         'subscribers_count',
         'recipes_count',
     )
+    list_display_links = ('username',)
     search_fields = ('email', 'username')
 
     @admin.display(description='Подписчиков')
