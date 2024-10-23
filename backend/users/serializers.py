@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Recipe
 from rest_framework.serializers import (CurrentUserDefault, IntegerField,
                                         ModelSerializer, SerializerMethodField,
                                         SlugRelatedField, ValidationError)
 from rest_framework.validators import UniqueTogetherValidator
 
+from recipes.models import Recipe
 from .models import Subscriptions
 
 User = get_user_model()
@@ -90,7 +90,7 @@ class UserRecipeSerializer(UserSerializer):
         :param obj: Объект пользователя, чьи рецепты мы хотим получить.
         :return list: Список сериализованных рецептов автора.
         """
-        from api.serializers import RecipeSerializer
+        from api.serializers import RecipeGetSerializer
 
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
@@ -99,7 +99,7 @@ class UserRecipeSerializer(UserSerializer):
         if limit:
             queryset = queryset[:int(limit)]
 
-        return RecipeSerializer(queryset, many=True).data
+        return RecipeGetSerializer(queryset, many=True).data
 
 
 class UserSubscriptionsSerializer(ModelSerializer):

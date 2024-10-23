@@ -176,8 +176,8 @@ class RecipeIngredients(models.Model):
         определяющий параметры модели.
         """
         default_related_name = 'recipe_ingredients'
-        verbose_name = 'Количество ингредиента'
-        verbose_name_plural = 'Количество ингредиентов'
+        verbose_name = 'Ингредиент рецепта'
+        verbose_name_plural = 'Ингредиент рецепта'
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
@@ -236,7 +236,9 @@ class FavoritesRecipe(RecipeRelationModel):
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
-        return super().__str__() + ' добавлен в избранное.'
+        return super().__str__() + (
+            f' добавлен в избранное пользователю {self.author.username}.'
+        )
 
 
 class ShoppingCart(RecipeRelationModel):
@@ -262,4 +264,6 @@ class ShoppingCart(RecipeRelationModel):
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
-        return super().__str__() + ' добавлен в список покупок.'
+        return super().__str__() + (
+            f' добавлен в список покупок пользователю {self.author.username}.'
+        )

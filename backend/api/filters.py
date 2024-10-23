@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 
-from django_filters.rest_framework import (AllValuesMultipleFilter,
-                                           BooleanFilter, CharFilter,
-                                           FilterSet, ModelChoiceFilter)
+from django_filters.rest_framework import (
+    AllValuesMultipleFilter, BooleanFilter, CharFilter, FilterSet,
+)
 
 from recipes.models import Ingredient, Recipe
 
@@ -16,7 +16,7 @@ class IngredientFilter(FilterSet):
     Позволяет фильтровать ингредиенты по частичному совпадению имени.
     """
 
-    name = CharFilter(lookup_expr='icontains')
+    name = CharFilter(lookup_expr='istartswith')
 
     class Meta:
         model = Ingredient
@@ -30,7 +30,6 @@ class RecipesFilter(FilterSet):
     а также по наличию в избранном и списке покупок.
     """
 
-    # author = ModelChoiceFilter(queryset=User.objects.all())
     tags = AllValuesMultipleFilter(field_name='tags__slug')
     is_favorited = BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = BooleanFilter(method='filter_is_in_shopping_cart')
@@ -47,9 +46,9 @@ class RecipesFilter(FilterSet):
         :param value: Значение фильтра (True или False).
         :return: Отфильтрованный набор данных рецептов.
         """
-        if value:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(favorites__author=self.request.user)
-        return queryset.objects.all()
+        return queryset.none()
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         """Фильтрует рецепты по наличию в списке покупок.
@@ -59,6 +58,6 @@ class RecipesFilter(FilterSet):
         :param value: Значение фильтра (True или False).
         :return: Отфильтрованный набор данных рецептов.
         """
-        if value:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(shoppingcart__author=self.request.user)
-        return queryset.objects.all()
+        return queryset.none()

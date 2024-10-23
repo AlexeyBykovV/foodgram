@@ -1,4 +1,4 @@
-from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsOwnerOrReadOnly(BasePermission):
@@ -28,9 +28,6 @@ class IsOwnerOrReadOnly(BasePermission):
         :param obj: Объект, к которому проверяются права доступа.
         :return: True, если доступ разрешен, иначе False.
         """
-        # if request.method in SAFE_METHODS:
-        #     return True
-        # return obj.author == request.user
         return request.method in SAFE_METHODS or obj.author == request.user
 
     def has_permission(self, request, view):
@@ -40,12 +37,7 @@ class IsOwnerOrReadOnly(BasePermission):
         :param view: Представление, обрабатывающее запрос.
         :return: True, если доступ разрешен, иначе False.
         """
-        # if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+
         if request.method not in SAFE_METHODS:
             return request.user.is_authenticated
         return True
-
-        return (
-            request.method not in SAFE_METHODS
-            and not request.user.is_authenticated
-        )

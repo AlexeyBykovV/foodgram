@@ -270,7 +270,9 @@ class RecipeViewSet(ModelViewSet):
         :param pk: Первичный ключ рецепта
         :return: HTTP-ответ с данными сериализатора и статусом 201 Created
         """
-        data = {'recipe': pk}
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        data = {'recipe': recipe.id}
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user)

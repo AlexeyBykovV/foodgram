@@ -8,6 +8,7 @@ from .models import Subscriptions, User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    """Настройка модели User в админке"""
     list_display = (
         'id',
         'username',
@@ -31,6 +32,17 @@ class CustomUserAdmin(UserAdmin):
         return obj.recipes.count()
 
 
-admin.register(Subscriptions)
+@admin.register(Subscriptions)
+class SubscriptionsAdmin(admin.ModelAdmin):
+    """Настройка модели Subscriptions в админке"""
+    list_display = (
+        'id',
+        'user',
+        'author'
+    )
+    list_display_links = ('user',)
+    search_fields = ('user',)
+
+
 admin.site.unregister(Group)
 admin.site.unregister(TokenProxy)

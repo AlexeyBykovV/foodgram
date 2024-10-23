@@ -4,7 +4,6 @@ from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
 from core.constants import EMAIL_MAX_LENGTH, USER_MAX_LENGTH
 from core.models import AuthorModel
-
 from .validators import username_validator
 
 

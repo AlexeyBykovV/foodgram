@@ -1,8 +1,7 @@
 from django.contrib import admin
 
-from .models import (
-    FavoritesRecipe, Ingredient, Recipe, RecipeIngredients, ShoppingCart, Tag, 
-)
+from .models import (FavoritesRecipe, Ingredient, Recipe,
+                     RecipeIngredients, ShoppingCart, Tag)
 
 
 class RecipeIngredientsInline(admin.TabularInline):
@@ -14,9 +13,10 @@ class RecipeIngredientsInline(admin.TabularInline):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    """Настройка модуля Тэг в админке"""
+    """Настройка модели Тэг в админке"""
 
     list_display = ('name', 'slug')
+    list_display_links = ('name',)
     search_fields = ('name',)
 
 
@@ -25,6 +25,7 @@ class IngredientAdmin(admin.ModelAdmin):
     """Настройка модели Игредиентов в админке"""
 
     list_display = ('name', 'measurement_unit')
+    list_display_links = ('name',)
     search_fields = ('name',)
 
 
@@ -34,23 +35,19 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'author', 'in_favourites')
     list_display_links = ('name',)
-    search_fields = ('author', 'name')
+    search_fields = ('name', 'author')
     list_filter = ('tags',)
     inlines = [RecipeIngredientsInline]
 
     @admin.display(description='В избранном')
     def in_favourites(self, obj):
-        """Количество добавлений рецептов в избранном"""
+        """Количество добавлений рецептов в избранное."""
         return obj.favorites.count()
 
 
-@admin.register(FavoritesRecipe)
+@admin.register(FavoritesRecipe, ShoppingCart)
 class FavouritesRecipeAdmin(admin.ModelAdmin):
-    """Настройка модели Избранного в админке"""
+    """Настройка модели Избранного/Списка покупок в админке"""
 
-
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
-    """Настройка модели Список покупок в админке"""
-
-
+    list_display = ('id', 'recipe', '__str__')
+    list_display_links = ('id', 'recipe')

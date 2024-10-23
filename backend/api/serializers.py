@@ -2,10 +2,9 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import (
-    BooleanField, CharField, IntegerField,
-    ModelSerializer, PrimaryKeyRelatedField
-)
+from rest_framework.serializers import (BooleanField, CharField,
+                                        IntegerField, ModelSerializer,
+                                        PrimaryKeyRelatedField)
 
 from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
                             RecipeIngredients, ShoppingCart, Tag)
@@ -48,23 +47,23 @@ class RecipeSerializer(ModelSerializer):
     ingredients = IngredientGetSerializer(
         many=True, source='recipe_ingredients'
     )
-    is_favorited = BooleanField(read_only=True)
-    is_in_shopping_cart = BooleanField(read_only=True)
+    is_favorited = BooleanField(default=False, read_only=True)
+    is_in_shopping_cart = BooleanField(default=False, read_only=True)
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = (
             'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
             'name',
             'image',
             'text',
-            'ingredients',
             'cooking_time',
-            'tags',
-            'author',
-            'is_favorited',
-            'is_in_shopping_cart',
         )
 
 
