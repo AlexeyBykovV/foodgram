@@ -118,13 +118,13 @@ class UserSubscriptionsSerializer(ModelSerializer):
     class Meta:
         model = Subscriptions
         fields = ('author', 'user')
-        validators = [
+        validators = (
             UniqueTogetherValidator(
                 queryset=model.objects.all(),
                 fields=('author', 'user'),
                 message='Вы уже подписаны на этого пользователя.',
-            )
-        ]
+            ),
+        )
 
     def validate_author(self, author):
         """Проверка, что пользователь не пытается подписаться на себя.

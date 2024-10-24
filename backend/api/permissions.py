@@ -37,7 +37,4 @@ class IsOwnerOrReadOnly(BasePermission):
         :param view: Представление, обрабатывающее запрос.
         :return: True, если доступ разрешен, иначе False.
         """
-
-        if request.method not in SAFE_METHODS:
-            return request.user.is_authenticated
-        return True
+        return request.method in SAFE_METHODS or request.user.is_authenticated

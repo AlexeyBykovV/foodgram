@@ -41,7 +41,7 @@ class SubscriptionsAdmin(admin.ModelAdmin):
         'author'
     )
     list_display_links = ('user',)
-    search_fields = ('user',)
+    search_fields = ('user__email',)
 
 
 admin.site.unregister(Group)

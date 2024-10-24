@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from model_utils.fields import UUIDField
+
 from core.constants import (AMOUNT_MAX, AMOUNT_MIN,
                             COOKING_MAX_TIME, COOKING_MIN_TIME,
                             NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
@@ -60,7 +62,7 @@ class Ingredient(models.Model):
 
     class Meta:
         """Метакласс для модели Ingredient, определяющий параметры модели."""
-        ordering = ['name']
+        ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
@@ -227,12 +229,12 @@ class FavoritesRecipe(RecipeRelationModel):
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=('author', 'recipe'),
                 name='unique_recipe_favorite'
-            )
-        ]
+            ),
+        )
 
     def __str__(self):
         """Возвращает строковое представление подписки."""
@@ -255,12 +257,12 @@ class ShoppingCart(RecipeRelationModel):
         default_related_name = 'shoppingcart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=('author', 'recipe'),
                 name='unique_recipe_shopping_cart'
-            )
-        ]
+            ),
+        )
 
     def __str__(self):
         """Возвращает строковое представление подписки."""

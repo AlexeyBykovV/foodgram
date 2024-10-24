@@ -141,14 +141,11 @@ class RecipeCreateSerializer(ModelSerializer):
         if not ingredients:
             raise ValidationError('В рецепте не выбраны ингредиенты.')
 
-        ingredient_ids = set()
-        for ingredient in ingredients:
-            ingredient_id = ingredient['ingredient'].id
-            if ingredient_id in ingredient_ids:
-                raise ValidationError(
-                    f'{ingredient["ingredient"].name} уже добавлен в рецепт.'
-                )
-            ingredient_ids.add(ingredient_id)
+        ingredient_ids = {
+            ingredient['ingredient'].id for ingredient in ingredients
+        }
+        if len(ingredient_ids) != len(ingredients):
+            raise ValidationError('Ингредиенты не должны повторяться.')
 
         return data
 
@@ -192,17 +189,15 @@ class RecipeCreateSerializer(ModelSerializer):
         :param recipe: Экземпляр рецепта, в который добавляются ингредиенты.
         :param ingredients: Список ингредиентов для добавления.
         """
-        sorted_ingredients = sorted(
-            ingredients, key=lambda x: x['ingredient'].name
-        )
-
         RecipeIngredients.objects.bulk_create(
             RecipeIngredients(
                 recipe=recipe,
                 ingredient=ingredient['ingredient'],
                 amount=ingredient['amount'],
             )
-            for ingredient in sorted_ingredients
+            for ingredient in sorted(
+                ingredients, key=lambda x: x['ingredient'].name
+            )
         )
 
     def to_representation(self, instance):

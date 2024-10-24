@@ -2,7 +2,7 @@ import uuid
 
 import pdfkit
 from django.db.models import Exists, OuterRef, Prefetch, Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from core.constants import SHORT_LINK_SIZE
 from core.paginations import RecipePagination
 from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
                             RecipeIngredients, ShoppingCart, Tag)
@@ -232,7 +233,7 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         if not recipe.short_link:
             while True:
-                short_link = str(uuid.uuid4())[:8]
+                short_link = str(uuid.uuid4())[:SHORT_LINK_SIZE]
                 if not Recipe.objects.filter(short_link=short_link).exists():
                     recipe.short_link = short_link
                     recipe.save()
@@ -259,9 +260,12 @@ class RecipeViewSet(ModelViewSet):
         :param short_link: Короткая ссылка на рецепт.
         :return: HTTP-ответ с данными рецепта.
         """
+        # recipe = get_object_or_404(Recipe, short_link=short_link)
+        # serializer = self.get_serializer(recipe)
+        # return Response(serializer.data)
         recipe = get_object_or_404(Recipe, short_link=short_link)
-        serializer = self.get_serializer(recipe)
-        return Response(serializer.data)
+        main_url = f'/recipes/{recipe.id}/'
+        return HttpResponseRedirect(main_url)
 
     def add_recipe(self, request, pk):
         """Добавляет рецепт к автору.
