@@ -2,8 +2,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from model_utils.fields import UUIDField
-
 from core.constants import (AMOUNT_MAX, AMOUNT_MIN,
                             COOKING_MAX_TIME, COOKING_MIN_TIME,
                             NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
@@ -74,16 +72,16 @@ class Ingredient(models.Model):
 class Recipe(AuthorModel):
     """Модель, описывающая рецепты. Наследуется от модели AuthorModel.
 
-        :param name (CharField): Название рецепта.
-        :param image (ImageField): Поле для загрузки изображения рецепта.
-        :param text (TextField): Текстовое описание рецепта.
-        :param ingredients (ManyToManyField): Связь многие-ко-многим
-        с моделью Ingredient через промежуточную модель RecipeIngredients.
-        :param tags (ManyToManyField): Связь многие-ко-многим с моделью Tag.
-        :param cooking_time (PositiveIntegerField): Время приготовления
-        в минутах.
-        :param pub_date (DateTimeField): Дата добавления рецепта.
-        :param short_link (CharField): Уникальная короткая ссылка на рецепт.
+    :param name (CharField): Название рецепта.
+    :param image (ImageField): Поле для загрузки изображения рецепта.
+    :param text (TextField): Текстовое описание рецепта.
+    :param ingredients (ManyToManyField): Связь многие-ко-многим
+    с моделью Ingredient через промежуточную модель RecipeIngredients.
+    :param tags (ManyToManyField): Связь многие-ко-многим с моделью Tag.
+    :param cooking_time (PositiveIntegerField): Время приготовления
+    в минутах.
+    :param pub_date (DateTimeField): Дата добавления рецепта.
+    :param short_link (CharField): Уникальная короткая ссылка на рецепт.
     """
 
     name = models.CharField(

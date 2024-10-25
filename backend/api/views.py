@@ -241,18 +241,18 @@ class RecipeViewSet(ModelViewSet):
         return Response(
             {
                 'short-link': request.build_absolute_uri(
-                    f'/recipes/s/{recipe.short_link}'
+                    f'/s/{recipe.short_link}'
                 )
             },
             status=status.HTTP_200_OK
         )
 
-    @action(
-        methods=['get'],
-        detail=False,
-        url_path='s/(?P<short_link>[^/.]+)',
-        url_name='recipe_by_short_link'
-    )
+    # @action(
+    #     methods=['get'],
+    #     detail=False,
+    #     url_path='s/(?P<short_link>[^/.]+)',
+    #     url_name='recipe_by_short_link'
+    # )
     def retrieve_by_short_link(self, request, short_link=None):
         """Получение рецепта по короткой ссылке.
 
@@ -260,12 +260,9 @@ class RecipeViewSet(ModelViewSet):
         :param short_link: Короткая ссылка на рецепт.
         :return: HTTP-ответ с данными рецепта.
         """
-        # recipe = get_object_or_404(Recipe, short_link=short_link)
-        # serializer = self.get_serializer(recipe)
-        # return Response(serializer.data)
         recipe = get_object_or_404(Recipe, short_link=short_link)
-        main_url = f'/recipes/{recipe.id}/'
-        return HttpResponseRedirect(main_url)
+        serializer = self.get_serializer(recipe)
+        return Response(serializer.data)
 
     def add_recipe(self, request, pk):
         """Добавляет рецепт к автору.

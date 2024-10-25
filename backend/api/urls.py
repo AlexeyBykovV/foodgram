@@ -21,10 +21,5 @@ user_router_v1.register('users', UserViewSet, basename='users')
 urlpatterns = [
     path('', include(api_router_v1.urls)),
     path('', include(user_router_v1.urls)),
-    path(
-        'recipes/s/<str:short_link>/',
-        RecipeViewSet.as_view({'get': 'retrieve_by_short_link'}),
-        name='recipe_by_short_link'
-    ),
     path('auth/', include('djoser.urls.authtoken')),
 ]
