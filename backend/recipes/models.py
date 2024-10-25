@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -116,9 +118,6 @@ class Recipe(AuthorModel):
         auto_now_add=True,
         verbose_name='Дата добавления',
     )
-    short_link = models.CharField(
-        max_length=SHORT_LINK_SIZE, unique=True, null=True, blank=True
-    )
 
     class Meta:
         """Метакласс для модели Recipe, определяющий параметры модели."""
@@ -130,6 +129,31 @@ class Recipe(AuthorModel):
     def __str__(self):
         """Возвращает строковое представление подписки."""
         return self.name
+
+
+class RecipeShortLink(models.Model):
+    """Модель коротких ссылок"""
+
+    short_link = models.CharField(
+        max_length=SHORT_LINK_SIZE, unique=True, editable=False
+    )
+    original_url = models.CharField()
+
+    def save(self, *args, **kwargs):
+        """Переопределяем метод для генерации short_link перед сохранением."""
+        if not self.short_link:
+            self.short_link = str(uuid.uuid4())[:SHORT_LINK_SIZE]
+        super().save(*args, **kwargs)
+
+    class Meta:
+        """Метакласс для модели RecipeShortLink,
+        определяющий параметры модели.
+        """
+        verbose_name = 'Ссылка'
+        verbose_name_plural = 'Ссылки'
+
+    def __str__(self):
+        return f'{self.original_url} -> {self.short_link}'
 
 
 class RecipeIngredients(models.Model):

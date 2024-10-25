@@ -5,9 +5,11 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (BooleanField, CharField,
                                         IntegerField, ModelSerializer,
                                         PrimaryKeyRelatedField)
+from rest_framework.reverse import reverse
 
 from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
-                            RecipeIngredients, ShoppingCart, Tag)
+                            RecipeShortLink, RecipeIngredients,
+                            ShoppingCart, Tag)
 from users.serializers import UserSerializer
 
 
@@ -207,6 +209,30 @@ class RecipeCreateSerializer(ModelSerializer):
         :return: Данные рецепта в формате JSON.
         """
         return RecipeSerializer(instance, context=self.context).data
+
+
+class ShortLinkSerializer(ModelSerializer):
+    """Сериализатор коротких ссылок"""
+
+    class Meta:
+        model = RecipeShortLink
+        fields = ('original_url',)
+        write_only_fields = ('original_url',)
+
+    def get_short_link(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(
+            reverse('shortener:load_url', args=[obj.short_link])
+        )
+
+    def create(self, validated_data):
+        # instance, _ = RecipeShortLink.objects.get_or_create(**validated_data)
+        instance = RecipeShortLink(**validated_data)
+        instance.save()
+        return instance
+
+    def to_representation(self, instance):
+        return {'short-link': self.get_short_link(instance)}
 
 
 class BaseRecipeCollectionSerializer(ModelSerializer):

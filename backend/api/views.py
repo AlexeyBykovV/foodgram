@@ -10,18 +10,21 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from core.constants import SHORT_LINK_SIZE
 from core.paginations import RecipePagination
 from recipes.models import (FavoritesRecipe, Ingredient, Recipe,
-                            RecipeIngredients, ShoppingCart, Tag)
+                            RecipeIngredients, RecipeShortLink,
+                            ShoppingCart, Tag)
 from users.models import Subscriptions
 from .filters import IngredientFilter, RecipesFilter
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (FavoritesSerializer, IngredientSerializer,
                           RecipeCreateSerializer, RecipeSerializer,
-                          ShoppingCartSerializer, TagSerializer)
+                          ShortLinkSerializer, ShoppingCartSerializer,
+                          TagSerializer)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -81,6 +84,7 @@ class RecipeViewSet(ModelViewSet):
     serializer_action_classes = {
         'list': RecipeSerializer,
         'retrieve': RecipeSerializer,
+        'get_link': ShortLinkSerializer,
         'favorite': FavoritesSerializer,
         'shopping_cart': ShoppingCartSerializer,
     }
@@ -230,29 +234,20 @@ class RecipeViewSet(ModelViewSet):
         :param pk: Первичный ключ рецепта.
         :return: HTTP-ответ с короткой ссылкой на рецепт.
         """
-        recipe = self.get_object()
-        if not recipe.short_link:
-            while True:
-                short_link = str(uuid.uuid4())[:SHORT_LINK_SIZE]
-                if not Recipe.objects.filter(short_link=short_link).exists():
-                    recipe.short_link = short_link
-                    recipe.save()
-                    break
-        return Response(
-            {
-                'short-link': request.build_absolute_uri(
-                    f'/s/{recipe.short_link}'
-                )
-            },
-            status=status.HTTP_200_OK
+        self.get_object()
+        original_url = request.META.get('HTTP_REFERER')
+        if original_url is None:
+            url = reverse('api:recipe-detail', kwargs={'pk': pk})
+            original_url = request.build_absolute_uri(url)
+        serializer = self.get_serializer(
+            data={'original_url': original_url},
+            context={'request': request},
         )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-    # @action(
-    #     methods=['get'],
-    #     detail=False,
-    #     url_path='s/(?P<short_link>[^/.]+)',
-    #     url_name='recipe_by_short_link'
-    # )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def retrieve_by_short_link(self, request, short_link=None):
         """Получение рецепта по короткой ссылке.
 
@@ -260,7 +255,7 @@ class RecipeViewSet(ModelViewSet):
         :param short_link: Короткая ссылка на рецепт.
         :return: HTTP-ответ с данными рецепта.
         """
-        recipe = get_object_or_404(Recipe, short_link=short_link)
+        recipe = get_object_or_404(RecipeShortLink, short_link=short_link)
         serializer = self.get_serializer(recipe)
         return Response(serializer.data)
 
