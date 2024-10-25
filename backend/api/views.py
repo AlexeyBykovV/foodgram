@@ -2,7 +2,7 @@ import uuid
 
 import pdfkit
 from django.db.models import Exists, OuterRef, Prefetch, Sum
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django_filters.rest_framework import DjangoFilterBackend
