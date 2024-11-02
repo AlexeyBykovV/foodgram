@@ -220,18 +220,31 @@ class ShortLinkSerializer(ModelSerializer):
         write_only_fields = ('original_url',)
 
     def get_short_link(self, obj):
+        """Возвращает абсолютную ссылку на рецепт по короткой ссылке.
+
+        :param obj: Экземпляр модели RecipeShortLink.
+        :return: Абсолютная ссылка на рецепт.
+        """
         request = self.context.get('request')
         return request.build_absolute_uri(
-            reverse('shortener:load_url', args=[obj.short_link])
+            reverse('recipe_by_short_link', args=[obj.short_link])
         )
 
     def create(self, validated_data):
-        # instance, _ = RecipeShortLink.objects.get_or_create(**validated_data)
-        instance = RecipeShortLink(**validated_data)
-        instance.save()
+        """Создает или возвращает существующий объект RecipeShortLink.
+
+        :param validated_data: Валидированные данные для создания объекта.
+        :return: Объект RecipeShortLink.
+        """
+        instance, _ = RecipeShortLink.objects.get_or_create(**validated_data)
         return instance
 
     def to_representation(self, instance):
+        """Возвращает представление данных короткой ссылки.
+
+        :param instance: Экземпляр модели RecipeShortLink.
+        :return: Данные короткой ссылки в формате JSON.
+        """
         return {'short-link': self.get_short_link(instance)}
 
 

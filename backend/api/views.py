@@ -3,7 +3,7 @@ import uuid
 import pdfkit
 from django.db.models import Exists, OuterRef, Prefetch, Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import get_template
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
@@ -236,15 +236,19 @@ class RecipeViewSet(ModelViewSet):
         """
         self.get_object()
         original_url = request.META.get('HTTP_REFERER')
+
         if original_url is None:
             url = reverse('api:recipe-detail', kwargs={'pk': pk})
             original_url = request.build_absolute_uri(url)
+
+        short_link_instance, _ = RecipeShortLink.objects.get_or_create(
+            original_url=original_url,
+            defaults={'short_link': str(uuid.uuid4())[:SHORT_LINK_SIZE]}
+        )
         serializer = self.get_serializer(
-            data={'original_url': original_url},
+            short_link_instance,
             context={'request': request},
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -253,11 +257,12 @@ class RecipeViewSet(ModelViewSet):
 
         :param request: HTTP-запрос.
         :param short_link: Короткая ссылка на рецепт.
-        :return: HTTP-ответ с данными рецепта.
+        :return: HTTP-ответ с редиректом на рецепт.
         """
-        recipe = get_object_or_404(RecipeShortLink, short_link=short_link)
-        serializer = self.get_serializer(recipe)
-        return Response(serializer.data)
+        recipe = get_object_or_404(
+            RecipeShortLink, short_link=short_link
+        ).original_url
+        return redirect(recipe)
 
     def add_recipe(self, request, pk):
         """Добавляет рецепт к автору.

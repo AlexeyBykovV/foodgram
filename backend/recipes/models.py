@@ -137,13 +137,7 @@ class RecipeShortLink(models.Model):
     short_link = models.CharField(
         max_length=SHORT_LINK_SIZE, unique=True, editable=False
     )
-    original_url = models.CharField()
-
-    def save(self, *args, **kwargs):
-        """Переопределяем метод для генерации short_link перед сохранением."""
-        if not self.short_link:
-            self.short_link = str(uuid.uuid4())[:SHORT_LINK_SIZE]
-        super().save(*args, **kwargs)
+    original_url = models.CharField(unique=True)
 
     class Meta:
         """Метакласс для модели RecipeShortLink,
@@ -154,6 +148,12 @@ class RecipeShortLink(models.Model):
 
     def __str__(self):
         return f'{self.original_url} -> {self.short_link}'
+
+    def save(self, *args, **kwargs):
+        """Переопределяем метод для генерации short_link перед сохранением."""
+        if not self.short_link:
+            self.short_link = str(uuid.uuid4())[:SHORT_LINK_SIZE]
+        super().save(*args, **kwargs)
 
 
 class RecipeIngredients(models.Model):

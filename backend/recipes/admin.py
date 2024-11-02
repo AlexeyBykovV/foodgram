@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (FavoritesRecipe, Ingredient, Recipe,
-                     RecipeIngredients, ShoppingCart, Tag)
+                     RecipeIngredients, ShoppingCart, Tag, RecipeShortLink)
 
 
 class RecipeIngredientsInline(admin.TabularInline):
@@ -43,6 +43,13 @@ class RecipeAdmin(admin.ModelAdmin):
     def in_favourites(self, obj):
         """Количество добавлений рецептов в избранное."""
         return obj.favorites.count()
+
+
+@admin.register(RecipeShortLink)
+class RecipeShortLinkAdvmin(admin.ModelAdmin):
+    """Настройка модели Ссылок в админке."""
+
+    list_display = ('short_link', 'original_url')
 
 
 @admin.register(FavoritesRecipe, ShoppingCart)
