@@ -4,10 +4,10 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from core.constants import (AMOUNT_MAX, AMOUNT_MIN,
+from core.constants import (AMOUNT_MAX, AMOUNT_MIN, ORIGINAL_URL_SIZE,
                             COOKING_MAX_TIME, COOKING_MIN_TIME,
                             NAME_MAX_LENGTH, SHORT_LINK_SIZE, SLUG_MAX_LENGTH,
-                            TITLE_MAX_LENGTH, UNIT_MAX_LENGTH)
+                            TITLE_MAX_LENGTH, UNIT_MAX_LENGTH,)
 from core.models import AuthorModel
 
 User = get_user_model()
@@ -137,7 +137,7 @@ class RecipeShortLink(models.Model):
     short_link = models.CharField(
         max_length=SHORT_LINK_SIZE, unique=True, editable=False
     )
-    original_url = models.CharField(unique=True)
+    original_url = models.CharField(max_length=ORIGINAL_URL_SIZE, unique=True)
 
     class Meta:
         """Метакласс для модели RecipeShortLink,
